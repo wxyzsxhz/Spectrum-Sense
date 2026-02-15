@@ -194,21 +194,86 @@ await getASDScreening({
 
 ---
 
-## ❌ Error Responses
+## ❌ Error Handling
 
-### Missing Fields
+### 1. No Data Provided
+
+**Response (400):**
 ```json
 {
-  "error": "Missing required fields",
-  "missing_fields": ["Q15", "Q16", "Q23"]
+  "error": "No data provided",
+  "message": "Please send JSON data in the request body"
 }
 ```
 
-### Age Out of Range
+### 2. Missing Age Field
+
+**Response (400):**
+```json
+{
+  "error": "Missing required field: Age",
+  "message": "Age is required to determine which model to use"
+}
+```
+
+### 3. Age Too Young
+
+**Response (400):**
 ```json
 {
   "error": "Age out of range",
-  "message": "Child is too young (age 8). M-CHAT is for 12-36 months..."
+  "message": "Child is too young (6 months / 0.5 years). M-CHAT is for 12-36 months minimum."
+}
+```
+
+### 4. Age Too Old
+
+**Response (400):**
+```json
+{
+  "error": "Age out of range",
+  "message": "Child is too old (200 months / 16.7 years). Maximum supported: AQ for up to 11 years (132 months). Consider using adult ASD screening tools."
+}
+```
+
+### 5. Missing Questions
+
+**Response (400):**
+```json
+{
+  "error": "Missing required fields",
+  "missing_fields": ["Q15", "Q16", "Q17", "Q18", "Q19", "Q20", "Q21", "Q22", "Q23"]
+}
+```
+
+### 6. Model Not Loaded
+
+**Response (500):**
+```json
+{
+  "error": "M-CHAT model not loaded",
+  "message": "The M-CHAT model file could not be loaded"
+}
+```
+
+### 7. Invalid Age for Specific Endpoint
+
+**Response (400):**
+```json
+{
+  "error": "Invalid age for M-CHAT",
+  "message": "M-CHAT is for ages 12-36 months. Provided: 72 months."
+}
+```
+
+### 8. Server/Prediction Error
+
+**Response (500):**
+```json
+{
+  "error": "Prediction failed",
+  "message": "ValueError: Invalid input shape",
+  "traceback": "Traceback (most recent call last):\n  File..."
 }
 ```
 
