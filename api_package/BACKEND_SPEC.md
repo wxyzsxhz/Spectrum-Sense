@@ -30,11 +30,11 @@
   "Gender": "female",           // "male" or "female"
   "Jaundice": "no",             // "yes" or "no"
   "Family_ASD_History": "no",   // "yes" or "no"
-  "Q1": 2,                      // Questions are scored 0-3
-  "Q2": 1,                      // 0 = Definitely agree
-  "Q3": 0,                      // 1 = Slightly agree
-  // ... continue Q4 through Q30 // 2 = Slightly disagree
-  "Q30": 3                      // 3 = Definitely disagree
+  "Q1": 2,                      // Questions are scored 0-3 depending on the scoring rule
+  "Q2": 1,
+  "Q3": 0, 
+  // ... continue Q4 through Q30
+  "Q30": 3 
 }
 ```
 
