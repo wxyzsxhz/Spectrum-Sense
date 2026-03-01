@@ -21,8 +21,8 @@ print("Loading trained models...")
 
 try:
     # Load M-CHAT model (for 12-36 months)
-    MCHAT_MODEL = joblib.load('outputs/mchat_model.pkl')
-    MCHAT_FEATURES = joblib.load('outputs_old/mchat_feature_names.pkl')
+    MCHAT_MODEL = joblib.load('api_package/outputs/mchat_model.pkl')
+    MCHAT_FEATURES = joblib.load('api_package/outputs/mchat_feature_names.pkl')
     print("✓ M-CHAT model loaded successfully")
     print(f"  Expected features: {len(MCHAT_FEATURES)}")
 except Exception as e:
@@ -32,8 +32,8 @@ except Exception as e:
 
 try:
     # Load AQ model (for 3-11 years)
-    AQ_MODEL = joblib.load('outputs/aq_model.pkl')
-    AQ_FEATURES = joblib.load('outputs_old/aq_feature_names.pkl')
+    AQ_MODEL = joblib.load('api_package/outputs/aq_model.pkl')
+    AQ_FEATURES = joblib.load('api_package/outputs/aq_feature_names.pkl')
     print("✓ AQ model loaded successfully")
     print(f"  Expected features: {len(AQ_FEATURES)}")
 except Exception as e:
@@ -47,6 +47,7 @@ except Exception as e:
 # ============================================================================
 
 def preprocess_mchat_data(data):
+    """Preprocess M-CHAT data - MATCHES train_mchat_raw.py EXACTLY"""
     df = pd.DataFrame([data])
     
     # 1. Encode binary yes/no columns
@@ -65,100 +66,54 @@ def preprocess_mchat_data(data):
         else:
             df['Gender'] = df['Gender'].astype(int)
     
-    # 3. FEATURE ENGINEERING (must match training exactly)
-
+    # 3. FEATURE ENGINEERING - EXACTLY AS IN train_mchat_raw.py
+    
     # Define M-CHAT clinical parameters
-
     BEST7_QUESTIONS = [2, 5, 7, 9, 14, 15, 20]
     INVERTED_QUESTIONS = [11, 18, 20, 22]
     
-    # Create failure indicators
-    failure_cols = []
-    for i in range(1, 24):
-        q_col = f'Q{i}'
-        fail_col = f'Q{i}_Failed'
-        
-        if i in INVERTED_QUESTIONS:
-            df[fail_col] = df[q_col]
-        else:
-            df[fail_col] = (df[q_col] == 0).astype(int)
-        
-        failure_cols.append(fail_col)
-    
-    # Best7 features
-    best7_fail_cols = [f'Q{i}_Failed' for i in BEST7_QUESTIONS]
-    df['Best7_Failed_Count'] = df[best7_fail_cols].sum(axis=1)
-    df['Total_Failed_Count'] = df[failure_cols].sum(axis=1)
-    df['MCHAT_Risk_Flag'] = (
-        (df['Best7_Failed_Count'] >= 2) | 
-        (df['Total_Failed_Count'] >= 3)
-    ).astype(int)
-    df['Best7_Pass_Rate'] = 1 - (df['Best7_Failed_Count'] / len(BEST7_QUESTIONS))
-    df['Total_Pass_Rate'] = 1 - (df['Total_Failed_Count'] / 23)
-    
-    non_best7_fail_cols = [f'Q{i}_Failed' for i in range(1, 24) if i not in BEST7_QUESTIONS]
-    df['NonBest7_Failed_Count'] = df[non_best7_fail_cols].sum(axis=1)
-    df['Best7_to_NonBest7_Ratio'] = df['Best7_Failed_Count'] / (df['NonBest7_Failed_Count'] + 1)
-    
-    # Domain-specific features
-    social_questions = [2, 7, 9, 14, 15, 17, 19, 21, 23]
-    social_fail_cols = [f'Q{i}_Failed' for i in social_questions]
-    df['Social_Failed_Count'] = df[social_fail_cols].sum(axis=1)
-    df['Social_Pass_Rate'] = 1 - (df['Social_Failed_Count'] / len(social_questions))
-    
-    joint_attention = [6, 7, 9, 15]
-    joint_attention_cols = [f'Q{i}_Failed' for i in joint_attention]
-    df['JointAttention_Failed_Count'] = df[joint_attention_cols].sum(axis=1)
-    
-    df['PretendPlay_Failed'] = df['Q5_Failed']
-    
-    sensory_questions = [11, 18, 22]
-    sensory_fail_cols = [f'Q{i}_Failed' for i in sensory_questions]
-    df['Sensory_Failed_Count'] = df[sensory_fail_cols].sum(axis=1)
-    
-    # Interaction features
-    df['Q9_Q14_Interaction'] = df['Q9_Failed'] * df['Q14_Failed']
-    df['Q9_Q15_Interaction'] = df['Q9_Failed'] * df['Q15_Failed']
-    df['Q7_Q14_Interaction'] = df['Q7_Failed'] * df['Q14_Failed']
-    
-    df['Risk_Factors_Sum'] = df['Family_ASD_History'] + df['Jaundice']
-    df['Male_With_Family_History'] = df['Gender'] * df['Family_ASD_History']
-    df['High_Risk_Profile'] = (
-        (df['Family_ASD_History'] == 1) & 
-        (df['Best7_Failed_Count'] >= 1)
-    ).astype(int)
-    
-    df['Best7_All_Passed'] = (df['Best7_Failed_Count'] == 0).astype(int)
-    df['Best7_Multiple_Failed'] = (df['Best7_Failed_Count'] >= 2).astype(int)
-    
-    # Age-based features
-    df['Age_Squared'] = df['Age'] ** 2
-    df['Age_Group'] = pd.cut(
-        df['Age'], 
-        bins=[0, 18, 24, 30, 100], 
-        labels=[0, 1, 2, 3]
-    ).astype(int)
-    
-    # Statistical pattern features
-    question_fail_cols = [f'Q{i}_Failed' for i in range(1, 24)]
-    df['Failure_Mean'] = df[question_fail_cols].mean(axis=1)
-    df['Failure_Std'] = df[question_fail_cols].std(axis=1)
-    
-    # Consecutive failures
-    consecutive_failures = []
-    for _, row in df[question_fail_cols].iterrows():
-        max_consecutive = 0
-        current_consecutive = 0
-        for val in row:
-            if val == 1:
-                current_consecutive += 1
-                max_consecutive = max(max_consecutive, current_consecutive)
+    # Helper function to count failures
+    def count_failures(row, questions, inverted):
+        """Count failed responses for given questions"""
+        count = 0
+        for q in questions:
+            q_col = f'Q{q}'
+            if q in inverted:
+                if row[q_col] == 1:  # Yes = Failed
+                    count += 1
             else:
-                current_consecutive = 0
-        consecutive_failures.append(max_consecutive)
+                if row[q_col] == 0:  # No = Failed
+                    count += 1
+        return count
     
-    df['Max_Consecutive_Failures'] = consecutive_failures
+    # Best7 scoring features - NOTE THE SIMPLE NAMES!
+    df['Best7_Failed'] = df.apply(
+        lambda row: count_failures(row, BEST7_QUESTIONS, INVERTED_QUESTIONS), 
+        axis=1
+    )
     
+    all_questions = list(range(1, 24))
+    df['Total_Failed'] = df.apply(
+        lambda row: count_failures(row, all_questions, INVERTED_QUESTIONS),
+        axis=1
+    )
+    
+    # Domain-specific features - NOTE THE SIMPLE NAMES!
+    domain_qs = {
+        'Social': [2,9,10,12,19,23],
+        'Communication': [6,7,14,15,17,21],
+        'Imitation': [5,13],
+        'Motor': [1,3,4,8,16],
+        'Sensory': [11,18,20,22]
+    }
+    
+    for domain, qs in domain_qs.items():
+        df[f'{domain}_Failed'] = df.apply(
+            lambda row: count_failures(row, qs, INVERTED_QUESTIONS),
+            axis=1
+        )
+    
+    # Ensure all expected features are present and in correct order
     for feature in MCHAT_FEATURES:
         if feature not in df.columns:
             df[feature] = 0
@@ -167,6 +122,7 @@ def preprocess_mchat_data(data):
 
 
 def preprocess_aq_data(data):
+    """Preprocess AQ data - MATCHES train_aq_raw.py EXACTLY"""
     df = pd.DataFrame([data])
     
     # 1. Encode binary columns
@@ -179,34 +135,40 @@ def preprocess_aq_data(data):
     else:
         df['Gender'] = df['Gender'].astype(int)
     
-    # 3. FEATURE ENGINEERING (must match training exactly)
+    # 3. FEATURE ENGINEERING - EXACTLY AS IN train_aq_raw.py
     
-    # AQ subscales
-    social = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6']
-    switching = ['Q7', 'Q8', 'Q9', 'Q10', 'Q11', 'Q12']
-    detail = ['Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18']
-    communication = ['Q19', 'Q20', 'Q21', 'Q22', 'Q23', 'Q24', 'Q25']
-    imagination = ['Q26', 'Q27', 'Q28', 'Q29', 'Q30']
+    # Define AQ-Child subscales
+    subscales = {
+        'Social': ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'],
+        'Switching': ['Q7', 'Q8', 'Q9', 'Q10', 'Q11', 'Q12'],
+        'Detail': ['Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18'],
+        'Communication': ['Q19', 'Q20', 'Q21', 'Q22', 'Q23', 'Q24', 'Q25'],
+        'Imagination': ['Q26', 'Q27', 'Q28', 'Q29', 'Q30']
+    }
     
-    # Subscale means
-    df['Social_Mean'] = df[social].mean(axis=1)
-    df['Switching_Mean'] = df[switching].mean(axis=1)
-    df['Detail_Mean'] = df[detail].mean(axis=1)
-    df['Communication_Mean'] = df[communication].mean(axis=1)
-    df['Imagination_Mean'] = df[imagination].mean(axis=1)
+    question_cols = [f'Q{i}' for i in range(1, 31)]
     
-    # Total AQ score
-    df['AQ_Total'] = df[[f'Q{i}' for i in range(1, 31)]].sum(axis=1)
+    # Subscale mean scores
+    for subscale_name, questions in subscales.items():
+        df[f'{subscale_name}_Mean'] = df[questions].mean(axis=1)
     
-    # High score count
-    df['High_Score_Count'] = (df[[f'Q{i}' for i in range(1, 31)]] >= 2).sum(axis=1)
+    # Total AQ score - NOTE THE NAME!
+    df['AQ_Total_Score'] = df[question_cols].sum(axis=1)  # ← AQ_Total_Score, not AQ_Total!
     
-    # Variability
-    df['Score_STD'] = df[[f'Q{i}' for i in range(1, 31)]].std(axis=1)
+    # High-score patterns (scores 2-3 indicate autistic-like responses)
+    df['High_Score_Count'] = (df[question_cols] >= 2).sum(axis=1)
     
-    # Interaction features
-    df['Comm_x_Family'] = df['Communication_Mean'] * df['Family_ASD_History']
-    df['Social_x_Family'] = df['Social_Mean'] * df['Family_ASD_History']
+    # Variability (ASD shows uneven profile)
+    df['Score_STD'] = df[question_cols].std(axis=1)
+    
+    # Subscale variability
+    subscale_means = [df[f'{name}_Mean'] for name in subscales.keys()]
+    df['Subscale_STD'] = pd.DataFrame(subscale_means).T.std(axis=1).values
+    
+    # Interaction features - EXACTLY AS IN TRAINING
+    df['Social_x_Communication'] = df['Social_Mean'] * df['Communication_Mean']
+    df['Family_x_HighScore'] = df['Family_ASD_History'] * df['High_Score_Count']
+    df['Male_x_Family'] = df['Gender'] * df['Family_ASD_History']
     
     # Ensure all expected features are present and in correct order
     for feature in AQ_FEATURES:
