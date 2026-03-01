@@ -21,7 +21,7 @@ print("Loading trained models...")
 
 try:
     # Load M-CHAT model (for 12-36 months)
-    MCHAT_MODEL = joblib.load('outputs_old/mchat_model.pkl')
+    MCHAT_MODEL = joblib.load('outputs/mchat_model.pkl')
     MCHAT_FEATURES = joblib.load('outputs_old/mchat_feature_names.pkl')
     print("✓ M-CHAT model loaded successfully")
     print(f"  Expected features: {len(MCHAT_FEATURES)}")
@@ -32,7 +32,7 @@ except Exception as e:
 
 try:
     # Load AQ model (for 3-11 years)
-    AQ_MODEL = joblib.load('outputs_old/aq_model.pkl')
+    AQ_MODEL = joblib.load('outputs/aq_model.pkl')
     AQ_FEATURES = joblib.load('outputs_old/aq_feature_names.pkl')
     print("✓ AQ model loaded successfully")
     print(f"  Expected features: {len(AQ_FEATURES)}")
@@ -500,3 +500,4 @@ if __name__ == '__main__':
     # debug=True enables auto-reload when you change code
     # Set to False in production
     app.run(host='0.0.0.0', port=5000, debug=True)
+
