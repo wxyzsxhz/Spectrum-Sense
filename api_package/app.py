@@ -21,8 +21,8 @@ print("Loading trained models...")
 
 try:
     # Load M-CHAT model (for 12-36 months)
-    MCHAT_MODEL = joblib.load('outputs/mchat_model.pkl')
-    MCHAT_FEATURES = joblib.load('outputs/mchat_feature_names.pkl')
+    MCHAT_MODEL = joblib.load('outputs_old/mchat_model.pkl')
+    MCHAT_FEATURES = joblib.load('outputs_old/mchat_feature_names.pkl')
     print("✓ M-CHAT model loaded successfully")
     print(f"  Expected features: {len(MCHAT_FEATURES)}")
 except Exception as e:
@@ -32,8 +32,8 @@ except Exception as e:
 
 try:
     # Load AQ model (for 3-11 years)
-    AQ_MODEL = joblib.load('outputs/aq_model.pkl')
-    AQ_FEATURES = joblib.load('outputs/aq_feature_names.pkl')
+    AQ_MODEL = joblib.load('outputs_old/aq_model.pkl')
+    AQ_FEATURES = joblib.load('outputs_old/aq_feature_names.pkl')
     print("✓ AQ model loaded successfully")
     print(f"  Expected features: {len(AQ_FEATURES)}")
 except Exception as e:
@@ -408,6 +408,7 @@ def predict_mchat_internal(data):
     # Get risk probability (probability of ASD class)
     risk_probability = prediction_proba[1]
     risk_percentage = risk_probability * 100
+    model_confidence = max(prediction_proba[0], prediction_proba[1])
     
     # Categorize risk
     risk_category = categorize_risk(risk_percentage)
@@ -418,7 +419,7 @@ def predict_mchat_internal(data):
         'age_unit': 'months',
         'prediction': int(prediction),
         'prediction_label': 'ASD' if prediction == 1 else 'No ASD',
-        'confidence': float(risk_probability),
+        'confidence': float(model_confidence),
         'risk_percentage': float(round(risk_percentage, 2)),
         'risk_category': risk_category,
         'probabilities': {
@@ -457,7 +458,8 @@ def predict_aq_internal(data):
     # Get risk probability
     risk_probability = prediction_proba[1]
     risk_percentage = risk_probability * 100
-    
+    model_confidence = max(prediction_proba[0], prediction_proba[1]) 
+
     # Categorize risk
     risk_category = categorize_risk(risk_percentage)
     
@@ -467,7 +469,7 @@ def predict_aq_internal(data):
         'age_unit': 'years',
         'prediction': int(prediction),
         'prediction_label': 'ASD' if prediction == 1 else 'No ASD',
-        'confidence': float(risk_probability),
+        'confidence': float(model_confidence),
         'risk_percentage': float(round(risk_percentage, 2)),
         'risk_category': risk_category,
         'probabilities': {
