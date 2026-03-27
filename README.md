@@ -30,7 +30,7 @@ It provides meaningful insights to parents and educators through an interactive 
 ## 🛠️ Technology Stack
 
 * **Frontend:** React, Next.js
-* **Backend:** Python (Flask / FastAPI)
+* **Backend:** NodeJS, Python (Flask / FastAPI)
 * **Database:** MongoDB Atlas
 * **Machine Learning:** Random Forest Model
 
