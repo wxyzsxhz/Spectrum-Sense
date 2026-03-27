@@ -21,8 +21,8 @@ print("Loading trained models...")
 
 try:
     # Load M-CHAT model (for 12-36 months)
-    MCHAT_MODEL = joblib.load('api_package/outputs/mchat_model.pkl')
-    MCHAT_FEATURES = joblib.load('api_package/outputs/mchat_feature_names.pkl')
+    MCHAT_MODEL = joblib.load('outputs/mchat_model.pkl')
+    MCHAT_FEATURES = joblib.load('outputs/mchat_feature_names.pkl')
     print("✓ M-CHAT model loaded successfully")
     print(f"  Expected features: {len(MCHAT_FEATURES)}")
 except Exception as e:
@@ -32,8 +32,8 @@ except Exception as e:
 
 try:
     # Load AQ model (for 3-11 years)
-    AQ_MODEL = joblib.load('api_package/outputs/aq_model.pkl')
-    AQ_FEATURES = joblib.load('api_package/outputs/aq_feature_names.pkl')
+    AQ_MODEL = joblib.load('outputs/aq_model.pkl')
+    AQ_FEATURES = joblib.load('outputs/aq_feature_names.pkl')
     print("✓ AQ model loaded successfully")
     print(f"  Expected features: {len(AQ_FEATURES)}")
 except Exception as e:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -26,11 +26,20 @@ type AQ10Question = {
 /* ================= MCHAT (UNCHANGED) ================= */
 
 const mchatQuestions: MChatQuestion[] = [
-  { id: 1, text: "Does your child enjoy being swung, bounced on your knee, etc.?" },
+  {
+    id: 1,
+    text: "Does your child enjoy being swung, bounced on your knee, etc.?",
+  },
   { id: 2, text: "Does your child take an interest in other children?" },
-  { id: 3, text: "Does your child like climbing on things, such as up stairs?" },
+  {
+    id: 3,
+    text: "Does your child like climbing on things, such as up stairs?",
+  },
   { id: 4, text: "Does your child enjoy playing peek-a-boo/hide-and-seek?" },
-  { id: 5, text: "Does your child ever pretend (e.g., talk on phone, take care of dolls)?" },
+  {
+    id: 5,
+    text: "Does your child ever pretend (e.g., talk on phone, take care of dolls)?",
+  },
   { id: 6, text: "Does your child use index finger to ask for something?" },
   { id: 7, text: "Does your child use index finger to indicate interest?" },
   { id: 8, text: "Can your child play properly with small toys?" },
@@ -55,44 +64,224 @@ const mchatQuestions: MChatQuestion[] = [
 
 const aq10Questions: AQ10Question[] = [
   // Section 1 – Social Skills
-  { id: "AQ1", number: 1, text: "Your child prefer to do things with others rather than on their own.", section: 1, sectionTitle: "Social Skills" },
-  { id: "AQ2", number: 2, text: "Your child is drawn more strongly to people than to things.", section: 1, sectionTitle: "Social Skills" },
-  { id: "AQ3", number: 3, text: "Your child finds it hard to make new friends.", section: 1, sectionTitle: "Social Skills" },
-  { id: "AQ4", number: 4, text: "Your child enjoys social occasions.", section: 1, sectionTitle: "Social Skills" },
-  { id: "AQ5", number: 5, text: "Your child enjoys meeting new people.", section: 1, sectionTitle: "Social Skills" },
-  { id: "AQ6", number: 6, text: "Your child finds it easy to work out what someone is thinking.", section: 1, sectionTitle: "Social Skills" },
+  {
+    id: "AQ1",
+    number: 1,
+    text: "Your child prefer to do things with others rather than on their own.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
+  {
+    id: "AQ2",
+    number: 2,
+    text: "Your child is drawn more strongly to people than to things.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
+  {
+    id: "AQ3",
+    number: 3,
+    text: "Your child finds it hard to make new friends.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
+  {
+    id: "AQ4",
+    number: 4,
+    text: "Your child enjoys social occasions.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
+  {
+    id: "AQ5",
+    number: 5,
+    text: "Your child enjoys meeting new people.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
+  {
+    id: "AQ6",
+    number: 6,
+    text: "Your child finds it easy to work out what someone is thinking.",
+    section: 1,
+    sectionTitle: "Social Skills",
+  },
 
   // Section 2 – Attention Switching
-  { id: "AQ7", number: 7, text: "Your child prefers doing things the same way repeatedly.", section: 2, sectionTitle: "Attention Switching" },
-  { id: "AQ8", number: 8, text: "Your child gets strongly absorbed in one thing.", section: 2, sectionTitle: "Attention Switching" },
-  { id: "AQ9", number: 9, text: "Your child keeps track of conversations in group.", section: 2, sectionTitle: "Attention Switching" },
-  { id: "AQ10", number: 10, text: "Your child is not upset if routine changes.", section: 2, sectionTitle: "Attention Switching" },
-  { id: "AQ11", number: 11, text: "Your child is easy to switch between activities.", section: 2, sectionTitle: "Attention Switching" },
-  { id: "AQ12", number: 12, text: "New situations make your child anxious.", section: 2, sectionTitle: "Attention Switching" },
+  {
+    id: "AQ7",
+    number: 7,
+    text: "Your child prefers doing things the same way repeatedly.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
+  {
+    id: "AQ8",
+    number: 8,
+    text: "Your child gets strongly absorbed in one thing.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
+  {
+    id: "AQ9",
+    number: 9,
+    text: "Your child keeps track of conversations in group.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
+  {
+    id: "AQ10",
+    number: 10,
+    text: "Your child is not upset if routine changes.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
+  {
+    id: "AQ11",
+    number: 11,
+    text: "Your child is easy to switch between activities.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
+  {
+    id: "AQ12",
+    number: 12,
+    text: "New situations make your child anxious.",
+    section: 2,
+    sectionTitle: "Attention Switching",
+  },
 
   // Section 3 – Attention to Detail
-  { id: "AQ13", number: 13, text: "Your child often notice small sounds when others do not.", section: 3, sectionTitle: "Attention to Detail" },
-  { id: "AQ14", number: 14, text: "Your child is fascinated by dates.", section: 3, sectionTitle: "Attention to Detail" },
-  { id: "AQ15", number: 15, text: "Your child is fascinated by numbers.", section: 3, sectionTitle: "Attention to Detail" },
-  { id: "AQ16", number: 16, text: "Your child tend to notice details that others do not.", section: 3, sectionTitle: "Attention to Detail" },
-  { id: "AQ17", number: 17, text: "Your child usually concentrate more on the whole picture, rather than the small details.", section: 3, sectionTitle: "Attention to Detail" },
-  { id: "AQ18", number: 18, text: "Your child does not usually notice small changes in a situation, or a person's appearance.", section: 3, sectionTitle: "Attention to Detail" },
+  {
+    id: "AQ13",
+    number: 13,
+    text: "Your child often notice small sounds when others do not.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
+  {
+    id: "AQ14",
+    number: 14,
+    text: "Your child is fascinated by dates.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
+  {
+    id: "AQ15",
+    number: 15,
+    text: "Your child is fascinated by numbers.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
+  {
+    id: "AQ16",
+    number: 16,
+    text: "Your child tend to notice details that others do not.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
+  {
+    id: "AQ17",
+    number: 17,
+    text: "Your child usually concentrate more on the whole picture, rather than the small details.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
+  {
+    id: "AQ18",
+    number: 18,
+    text: "Your child does not usually notice small changes in a situation, or a person's appearance.",
+    section: 3,
+    sectionTitle: "Attention to Detail",
+  },
 
   // Section 4 – Communication
-  { id: "AQ19", number: 19, text: "Your child has difficulty understanding rules for polite behaviour.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ20", number: 20, text: "When your child talks, it is not always easy for others to get a word in edgeways.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ21", number: 21, text: "Your child does not know how to keep a conversation going with their peers.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ22", number: 22, text: "When your child talks on the phone, they are not sure when it is their turn to speak.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ23", number: 23, text: "Your child is often the last to understand the point of a joke.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ24", number: 24, text: "People often tell your child that they keep going on and on about the same thing.", section: 4, sectionTitle: "Communication" },
-  { id: "AQ25", number: 25, text: "Your child is good at small talk.", section: 4, sectionTitle: "Communication" },
+  {
+    id: "AQ19",
+    number: 19,
+    text: "Your child has difficulty understanding rules for polite behaviour.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ20",
+    number: 20,
+    text: "When your child talks, it is not always easy for others to get a word in edgeways.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ21",
+    number: 21,
+    text: "Your child does not know how to keep a conversation going with their peers.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ22",
+    number: 22,
+    text: "When your child talks on the phone, they are not sure when it is their turn to speak.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ23",
+    number: 23,
+    text: "Your child is often the last to understand the point of a joke.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ24",
+    number: 24,
+    text: "People often tell your child that they keep going on and on about the same thing.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
+  {
+    id: "AQ25",
+    number: 25,
+    text: "Your child is good at small talk.",
+    section: 4,
+    sectionTitle: "Communication",
+  },
 
   // Section 5 – Imagination
-  { id: "AQ26", number: 26, text: "Your child finds making up stories easy.", section: 5, sectionTitle: "Imagination" },
-  { id: "AQ27", number: 27, text: "When your child are reading a story, they find it difficult to work out the characters' intentions or feelings.", section: 5, sectionTitle: "Imagination" },
-  { id: "AQ28", number: 28, text: "Your child does not particularly enjoy fictional stories.", section: 5, sectionTitle: "Imagination" },
-  { id: "AQ29", number: 29, text: "Your child likes to collect information about categories of things (e.g., types of car, types of bird, types of plant, etc.)", section: 5, sectionTitle: "Imagination" },
-  { id: "AQ30", number: 30, text: "Your child finds it very easy to play games with children that involve pretending.", section: 5, sectionTitle: "Imagination" },
+  {
+    id: "AQ26",
+    number: 26,
+    text: "Your child finds making up stories easy.",
+    section: 5,
+    sectionTitle: "Imagination",
+  },
+  {
+    id: "AQ27",
+    number: 27,
+    text: "When your child are reading a story, they find it difficult to work out the characters' intentions or feelings.",
+    section: 5,
+    sectionTitle: "Imagination",
+  },
+  {
+    id: "AQ28",
+    number: 28,
+    text: "Your child does not particularly enjoy fictional stories.",
+    section: 5,
+    sectionTitle: "Imagination",
+  },
+  {
+    id: "AQ29",
+    number: 29,
+    text: "Your child likes to collect information about categories of things (e.g., types of car, types of bird, types of plant, etc.)",
+    section: 5,
+    sectionTitle: "Imagination",
+  },
+  {
+    id: "AQ30",
+    number: 30,
+    text: "Your child finds it very easy to play games with children that involve pretending.",
+    section: 5,
+    sectionTitle: "Imagination",
+  },
 ];
 
 /* ================= OPTIONS ================= */
@@ -168,16 +357,21 @@ export default function Assessment() {
 
   const [currentSection, setCurrentSection] = useState(1);
 
-  const totalQuestions =
-    assessmentType === "mchat"
-      ? mchatQuestions.length
-      : aq10Questions.length;
+  useEffect(() => {
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
 
-  const progress =
-    (Object.keys(answers).length / totalQuestions) * 100;
+    window.scrollTo(0, 0);
+  }, []);
+
+  const totalQuestions =
+    assessmentType === "mchat" ? mchatQuestions.length : aq10Questions.length;
+
+  const progress = (Object.keys(answers).length / totalQuestions) * 100;
 
   const currentAQSectionQuestions = aq10Questions.filter(
-    (q) => q.section === currentSection
+    (q) => q.section === currentSection,
   );
 
   const handleSelect = (id: string | number, value: number) => {
@@ -227,20 +421,17 @@ export default function Assessment() {
             key={q.id}
             className={cn(
               "bg-[#f1fafe] rounded-xl p-3 shadow-sm transition-all mt-4 mx-2",
-              answers[q.id] !== undefined && "border border-[#2ab3c8]"
+              answers[q.id] !== undefined && "border border-[#2ab3c8]",
             )}
           >
             <div className="flex items-center justify-between gap-3">
-
               {/* LEFT SIDE — Question */}
               <div className="flex items-start gap-4 flex-1 pl-8">
                 <span className="w-8 h-8 rounded-full bg-[#2ab3c8] text-[#4b4b4b] flex items-center justify-center font-semibold text-sm shrink-0">
                   {q.id}
                 </span>
 
-                <p className="text-[#4b4b4b] leading-relaxed">
-                  {q.text}
-                </p>
+                <p className="text-[#4b4b4b] leading-relaxed">{q.text}</p>
               </div>
 
               {/* RIGHT SIDE — Yes / No */}
@@ -256,7 +447,7 @@ export default function Assessment() {
                         "w-8 h-8 rounded-full border-2 flex items-center justify-center transition",
                         answers[q.id] === index + 1
                           ? "bg-[#2ab3c8] border-[#2ab3c8]"
-                          : "border-2 border-[#2ab3c8] "
+                          : "border-2 border-[#2ab3c8] ",
                       )}
                     >
                       {answers[q.id] === index + 1 && (
@@ -264,17 +455,13 @@ export default function Assessment() {
                       )}
                     </div>
 
-                    <span className="text-sm text-[#4b4b4b]">
-                      {option}
-                    </span>
+                    <span className="text-sm text-[#4b4b4b]">{option}</span>
                   </button>
                 ))}
               </div>
-
             </div>
           </div>
         ))}
-
 
       {assessmentType === "mchat" && (
         <div className="mt-8 pb-8 flex justify-center">
@@ -295,16 +482,14 @@ export default function Assessment() {
             key={q.id}
             className={cn(
               "bg-[#f1fafe] rounded-xl p-6 px-8 shadow-sm transition-all mt-3 mx-2",
-              answers[q.id] && "border border-[#2ab3c8]"
+              answers[q.id] && "border border-[#2ab3c8]",
             )}
           >
             <div className="flex gap-3 mb-4">
               <span className="w-8 h-8 rounded-full bg-[#2ab3c8] text-[#4b4b4b] flex items-center justify-center font-semibold text-sm">
                 {q.number}
               </span>
-              <p className="text-[#4b4b4b] leading-relaxed">
-                {q.text}
-              </p>
+              <p className="text-[#4b4b4b] leading-relaxed">{q.text}</p>
             </div>
 
             <div className="flex items-center justify-between px-15 gap-6 mt-4">
@@ -320,7 +505,7 @@ export default function Assessment() {
                       circleSizesAQ[index].size,
                       answers[q.id] === opt.value
                         ? "bg-[#2ab3c8] border-[#2ab3c8]"
-                        : "border-2 border-[#2ab3c8]"
+                        : "border-2 border-[#2ab3c8]",
                     )}
                   >
                     {answers[q.id] === opt.value && (
@@ -341,12 +526,15 @@ export default function Assessment() {
         <div className="mt-8 pb-8 flex justify-center">
           {currentSection < 5 ? (
             <Button
-              onClick={() => setCurrentSection((prev) => prev + 1)}
-              disabled={
-                currentAQSectionQuestions.some(
-                  (q) => answers[q.id] === undefined
-                )
-              }
+              onClick={() => {
+                setCurrentSection((prev) => prev + 1);
+                requestAnimationFrame(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                });
+              }}
+              disabled={currentAQSectionQuestions.some(
+                (q) => answers[q.id] === undefined,
+              )}
               className="bg-[#2ab3c8] text-[#4b4b4b] font-semibold py-6 px-12 text-lg"
             >
               Next Section

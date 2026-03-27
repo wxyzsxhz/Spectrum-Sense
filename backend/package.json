@@ -10,6 +10,7 @@
     "imap": "^0.8.19",
     "jsonwebtoken": "^9.0.3",
     "mailparser": "^3.9.3",
+    "mkcert": "^3.2.0",
     "mongoose": "^9.1.5",
     "nodemailer": "^8.0.1"
   }

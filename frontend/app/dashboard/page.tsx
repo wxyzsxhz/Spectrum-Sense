@@ -592,12 +592,6 @@ function DashboardContent() {
                       {userData?.email || "user@email.com"}
                     </span>
                   </div>
-                  {/* <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-[#e1e8f0] shadow-sm">
-                    <Calendar className="w-4 h-4 text-[#1a9fb0]" />
-                    <span className="text-sm text-[#1a3a5f]">
-                      Member since 2024
-                    </span>
-                  </div> */}
                 </div>
               </div>
             </div>
